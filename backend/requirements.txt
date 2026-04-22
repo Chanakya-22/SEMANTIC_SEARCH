@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+fastapi
+uvicorn
+transformers
+torch
+torchvision
+Pillow
+requests
+faiss-cpu
+datasets
