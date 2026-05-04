@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ReactLenis } from 'lenis/react';
-import CanvasBackground from './components/CanvasBackground';
-import SearchInterface from './components/SearchInterface';
-import ResultsParallax from './components/ResultsParallax';
+import CanvasBackground from "./CanvasBackground";
+import SearchInterface from "./SearchInterface";
+import ResultsParallax from "./ResultsParallax";
 
 function App() {
   const [results, setResults] = useState([]);
