@@ -3,6 +3,7 @@ import faiss
 import torch
 import numpy as np
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from transformers import CLIPProcessor, CLIPModel
@@ -41,6 +42,15 @@ async def lifespan(app: FastAPI):
     assets.clear()
 
 app = FastAPI(lifespan=lifespan)
+
+# Enable CORS to allow requests from the React frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can restrict this to ["http://localhost:5173"] in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SearchQuery(BaseModel):
     query: str
