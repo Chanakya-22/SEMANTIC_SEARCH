@@ -1,0 +1,34 @@
+# ==========================================
+# Python & Backend Environment
+# ==========================================
+backend/venv/
+backend/env/
+backend/__pycache__/
+*.py[cod]
+*$py.class
+.env
+
+# ==========================================
+# Heavy Data & Vector Indices
+# ==========================================
+# These are generated locally and should never be pushed
+backend/vibe_index.faiss
+backend/database.json
+backend/database_clean.json
+
+# ==========================================
+# Node.js & Frontend Environment
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# OS / System Artifacts
+# ==========================================
+.DS_Store
+Thumbs.db
