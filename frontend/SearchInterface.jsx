@@ -16,7 +16,7 @@ export default function SearchInterface({ setResults, setIsSearching }) {
         body: JSON.stringify({ query })
       });
       const data = await res.json();
-      setResults(data.results || []);
+      setResults(data.results);
     } catch (err) {
       console.error("Search failed:", err);
     } finally {
