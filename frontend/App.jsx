@@ -5,20 +5,36 @@ import CanvasBackground from './CanvasBackground';
 import AppShell from './AppShell';
 import LandingPage from './LandingPage';
 import SearchInterface from './SearchInterface';
-import ResultsOverlay from './ResultsOverlay'; // <--- We are renaming/replacing the Parallax file
+import ResultsOverlay from './ResultsOverlay';
+import VectorSpaceDashboard from './VectorSpaceDashboard';
 
 function App() {
   const [currentView, setCurrentView] = useState('landing');
   const [isWarping, setIsWarping] = useState(false);
   const timeoutRefs = useRef([]);
 
-  // Search Engine State
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Safely clear any pending timers if the component ever unmounts
+  // Global Keyboard Shortcuts (Ctrl+K and Escape)
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Escape key clears results and returns to search void
+      if (e.key === 'Escape') {
+        setResults([]);
+        setCurrentView('search');
+      }
+      // Ctrl+K (or Cmd+K) instantly opens the search view
+      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setResults([]);
+        setCurrentView('search');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
+      window.removeEventListener('keydown', handleKeyDown);
       timeoutRefs.current.forEach(clearTimeout);
     };
   }, []);
@@ -33,28 +49,35 @@ function App() {
     timeoutRefs.current.push(t1);
   };
 
-  const resetSearch = () => {
-    setResults([]); // Clearing the array triggers the AnimatePresence to bring the search bar back
-  };
+  const resetSearch = () => setResults([]);
+
+  // Extract the confidence of the top result to feed the reactive canvas
+  const topConfidence = results.length > 0 ? results[0].score : 0;
 
   return (
     <ReactLenis root>
       <div className="relative w-full min-h-screen bg-space text-gold font-sans overflow-hidden">
         
-        {/* 3D WebGL Background Layer */}
+        {/* Reactive Canvas Background */}
         <div className="fixed inset-0 z-0 pointer-events-none">
-          <CanvasBackground isSearching={isSearching} isWarping={isWarping} />
+          <CanvasBackground 
+            isSearching={isSearching} 
+            isWarping={isWarping} 
+            confidence={topConfidence} 
+          />
         </div>
 
-        {/* Global App Shell (Sidebar) */}
         <AppShell currentView={currentView} setCurrentView={setCurrentView} />
 
-        {/* Main Content Area (Offset by sidebar width) */}
         <div className="relative z-10 pl-64 flex flex-col items-center justify-center min-h-screen">
           <AnimatePresence mode="wait">
             
             {currentView === 'landing' && (
               <LandingPage key="landing" onInitialize={handleInitialization} />
+            )}
+
+            {currentView === 'dashboard' && (
+              <VectorSpaceDashboard key="dashboard" />
             )}
 
             {currentView === 'search' && (

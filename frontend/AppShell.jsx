@@ -25,23 +25,23 @@ export default function AppShell({ currentView, setCurrentView }) {
           </div>
         </div>
 
-        <nav className="flex flex-col gap-6">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setCurrentView(item.id)}
-              disabled={item.id === 'dashboard'} // Disable WIP dashboard for now
-              className={`text-left text-xs uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-4 group ${
-                currentView === item.id ? 'text-gold' : 'text-gold/30 hover:text-gold/70'
-              } ${item.id === 'dashboard' ? 'opacity-30 cursor-not-allowed' : ''}`}
-            >
-              <div className={`h-[1px] transition-all duration-500 bg-gold ${
-                currentView === item.id ? 'w-6 opacity-100' : 'w-0 opacity-0 group-hover:w-3 group-hover:opacity-50'
-              }`} />
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        // Replace the old nav block with this one:
+<nav className="flex flex-col gap-6">
+  {navItems.map((item) => (
+    <button
+      key={item.id}
+      onClick={() => setCurrentView(item.id)}
+      className={`text-left text-xs uppercase tracking-[0.2em] transition-all duration-500 flex items-center gap-4 group ${
+        currentView === item.id ? 'text-gold' : 'text-gold/30 hover:text-gold/70'
+      }`}
+    >
+      <div className={`h-[1px] transition-all duration-500 bg-gold ${
+        currentView === item.id ? 'w-6 opacity-100' : 'w-0 opacity-0 group-hover:w-3 group-hover:opacity-50'
+      }`} />
+      {item.label}
+    </button>
+  ))}
+</nav>
       </div>
 
       {/* Mock User Details */}
