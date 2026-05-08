@@ -25,7 +25,7 @@ export default function AppShell({ currentView, setCurrentView }) {
           </div>
         </div>
 
-        // Replace the old nav block with this one:
+        
 <nav className="flex flex-col gap-6">
   {navItems.map((item) => (
     <button
