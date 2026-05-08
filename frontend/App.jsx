@@ -1,48 +1,41 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ReactLenis } from 'lenis/react';
 import { AnimatePresence } from 'framer-motion';
 import CanvasBackground from './CanvasBackground';
-import SearchInterface from './SearchInterface';
-import ResultsParallax from './ResultsParallax';
 import AppShell from './AppShell';
 import LandingPage from './LandingPage';
+import SearchInterface from './SearchInterface';
+import ResultsOverlay from './ResultsOverlay'; // <--- We are renaming/replacing the Parallax file
 
 function App() {
-  const [currentView, setCurrentView] = useState('landing'); // 'landing' or 'search'
-  const [isWarping, setIsWarping] = useState(false); // Controls the violent 3D transition
+  const [currentView, setCurrentView] = useState('landing');
+  const [isWarping, setIsWarping] = useState(false);
+  const timeoutRefs = useRef([]);
 
   // Search Engine State
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Refs to store timeout IDs for cleanup
-  const warpStartTimer = useRef(null);
-  const warpEndTimer = useRef(null);
-
-  // The cinematic transition function
-  const handleInitialization = () => {
-    setIsWarping(true);
-    // Let the warp tunnel effect play for 1.2 seconds, then switch the UI to search
-    warpStartTimer.current = setTimeout(() => {
-      setCurrentView('search');
-      // Taper off the warp speed smoothly
-      warpEndTimer.current = setTimeout(() => setIsWarping(false), 500);
-    }, 1200);
-  };
-
-  // Cleanup function to clear timers on unmount
+  // Safely clear any pending timers if the component ever unmounts
   useEffect(() => {
     return () => {
-      if (warpStartTimer.current !== null) {
-        clearTimeout(warpStartTimer.current);
-        warpStartTimer.current = null;
-      }
-      if (warpEndTimer.current !== null) {
-        clearTimeout(warpEndTimer.current);
-        warpEndTimer.current = null;
-      }
+      timeoutRefs.current.forEach(clearTimeout);
     };
   }, []);
+
+  const handleInitialization = () => {
+    setIsWarping(true);
+    const t1 = setTimeout(() => {
+      setCurrentView('search');
+      const t2 = setTimeout(() => setIsWarping(false), 500);
+      timeoutRefs.current.push(t2);
+    }, 1200);
+    timeoutRefs.current.push(t1);
+  };
+
+  const resetSearch = () => {
+    setResults([]); // Clearing the array triggers the AnimatePresence to bring the search bar back
+  };
 
   return (
     <ReactLenis root>
@@ -57,7 +50,7 @@ function App() {
         <AppShell currentView={currentView} setCurrentView={setCurrentView} />
 
         {/* Main Content Area (Offset by sidebar width) */}
-        <div className="relative z-10 pl-64 flex flex-col items-center min-h-screen">
+        <div className="relative z-10 pl-64 flex flex-col items-center justify-center min-h-screen">
           <AnimatePresence mode="wait">
             
             {currentView === 'landing' && (
@@ -65,13 +58,23 @@ function App() {
             )}
 
             {currentView === 'search' && (
-              <div key="search" className="w-full flex flex-col items-center">
-                <SearchInterface 
-                  setResults={setResults} 
-                  setIsSearching={setIsSearching} 
-                />
-                {/* Note: Phase 2 will overhaul this scroll component! */}
-                <ResultsParallax results={results} />
+              <div key="search-container" className="w-full flex items-center justify-center relative min-h-screen">
+                <AnimatePresence mode="wait">
+                  {results.length === 0 ? (
+                    <SearchInterface 
+                      key="search-interface"
+                      setResults={setResults} 
+                      setIsSearching={setIsSearching}
+                      isSearching={isSearching}
+                    />
+                  ) : (
+                    <ResultsOverlay 
+                      key="results-overlay"
+                      results={results} 
+                      resetSearch={resetSearch}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
