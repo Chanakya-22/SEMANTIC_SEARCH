@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 
 export default function SearchInterface({ setResults, setIsSearching, isSearching }) {
   const [query, setQuery] = useState('');
+  const [error, setError] = useState(null);
 
   const suggestions = [
     "The 3 AM debugging delusion",
@@ -16,7 +17,7 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
 
     setIsSearching(true);
     try {
-      const response = await fetch('http://localhost:8000/search', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: searchQuery }),
@@ -29,8 +30,9 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
         setIsSearching(false);
       }, 800);
       
-    } catch (error) {
-      console.error("Search failed:", error);
+    } catch (err) {
+      console.error("Search failed:", err);
+      setError("Search Engine is Offline. Make sure the backend server is running.");
       setIsSearching(false);
     }
   };
@@ -56,7 +58,7 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => { setQuery(e.target.value); setError(null); }}
           disabled={isSearching}
           placeholder="Describe a highly specific feeling..."
           className="w-full bg-transparent border-b border-gold/30 text-gold text-2xl py-4 pr-16 focus:outline-none focus:border-gold placeholder:text-gold/20 font-light transition-colors text-ellipsis overflow-hidden whitespace-nowrap"
@@ -74,6 +76,11 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
           </svg>
         </button>
       </form>
+      {error && (
+  <p className="mt-6 text-red-400/70 text-xs tracking-widest text-center uppercase">
+    ⚠ {error}
+  </p>
+)}
 
       {/* Suggestion Pills */}
       <div className="mt-12 flex flex-wrap justify-center gap-4">
