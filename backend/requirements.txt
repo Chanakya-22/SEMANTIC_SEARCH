@@ -9,3 +9,4 @@ Pillow
 requests
 faiss-cpu
 datasets
+python-dotenv

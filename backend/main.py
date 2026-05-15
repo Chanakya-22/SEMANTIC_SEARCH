@@ -1,3 +1,4 @@
+import os
 import json
 import faiss
 import torch
@@ -7,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from transformers import CLIPProcessor, CLIPModel
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Global variables to store loaded assets
 assets = {}
@@ -46,7 +50,7 @@ app = FastAPI(lifespan=lifespan)
 # Enable CORS to allow requests from the React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can restrict this to ["http://localhost:5173"] in production
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
