@@ -6,7 +6,7 @@ import AppShell from './AppShell';
 import LandingPage from './LandingPage';
 import SearchInterface from './SearchInterface';
 import ResultsOverlay from './ResultsOverlay';
-import VectorSpaceDashboard from './VectorSpaceDashboard';
+import VectorSpaceDashboard from './VectorSpaceDashboard.jsx';
 
 function App() {
   const [currentView, setCurrentView] = useState('landing');

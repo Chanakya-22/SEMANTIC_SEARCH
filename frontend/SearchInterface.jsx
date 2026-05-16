@@ -5,6 +5,13 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
   const [query, setQuery] = useState('');
   const [error, setError] = useState(null);
 
+  // ✅ NEW — search history state, persisted in localStorage
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('vibeSearchHistory') || '[]');
+    } catch { return []; }
+  });
+
   const suggestions = [
     "The 3 AM debugging delusion",
     "Imposter syndrome hitting hard",
@@ -23,13 +30,19 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
         body: JSON.stringify({ query: searchQuery }),
       });
       const data = await response.json();
-      
-      // Let the 3D warp effect play for 800ms before dissolving the search bar
+
+      // ✅ NEW — save to search history on success
+      setRecentSearches(prev => {
+        const updated = [searchQuery, ...prev.filter(q => q !== searchQuery)].slice(0, 5);
+        localStorage.setItem('vibeSearchHistory', JSON.stringify(updated));
+        return updated;
+      });
+
       setTimeout(() => {
         setResults(data.results);
         setIsSearching(false);
       }, 800);
-      
+
     } catch (err) {
       console.error("Search failed:", err);
       setError("Search Engine is Offline. Make sure the backend server is running.");
@@ -63,8 +76,6 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
           placeholder="Describe a highly specific feeling..."
           className="w-full bg-transparent border-b border-gold/30 text-gold text-2xl py-4 pr-16 focus:outline-none focus:border-gold placeholder:text-gold/20 font-light transition-colors text-ellipsis overflow-hidden whitespace-nowrap"
         />
-        
-        {/* Submit Arrow */}
         <button 
           type="submit"
           disabled={isSearching}
@@ -76,11 +87,33 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
           </svg>
         </button>
       </form>
+
       {error && (
-  <p className="mt-6 text-red-400/70 text-xs tracking-widest text-center uppercase">
-    ⚠ {error}
-  </p>
-)}
+        <p className="mt-6 text-red-400/70 text-xs tracking-widest text-center uppercase">
+          ⚠ {error}
+        </p>
+      )}
+
+      {/* ✅ NEW — recent searches, shown only when history exists */}
+      {recentSearches.length > 0 && (
+        <div className="mt-6 flex flex-wrap justify-center gap-2">
+          <span className="w-full text-center text-[9px] text-gold/20 uppercase tracking-widest mb-1">
+            Recent
+          </span>
+          {recentSearches.map((q, i) => (
+            <button
+              key={i}
+              onClick={() => { setQuery(q); executeSearch(q); }}
+              disabled={isSearching}
+              className="text-[9px] px-3 py-1 rounded-full border border-gold/10 text-gold/30
+                         hover:text-gold/60 hover:border-gold/30 transition-all duration-200
+                         tracking-widest uppercase"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Suggestion Pills */}
       <div className="mt-12 flex flex-wrap justify-center gap-4">
