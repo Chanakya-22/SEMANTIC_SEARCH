@@ -10,3 +10,5 @@ requests
 faiss-cpu
 datasets
 python-dotenv
+slowapi
+scikit-learn
