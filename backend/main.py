@@ -147,12 +147,18 @@ async def get_vectors():
     pca = PCA(n_components=2)
     coords_2d = pca.fit_transform(raw_vectors)
 
-    points = [
-        {
+    points = []
+    for i in range(sample_size):
+        meta = metadata[i] if i < len(metadata) else {}
+        # ✅ extract vibe_text, trim to first sentence for tooltip
+        vibe_text = meta.get("vibe_text", "")
+        short_label = vibe_text.split(";")[0].replace("TEXT:", "").strip()[:60]
+        points.append({
             "x": float(coords_2d[i][0]),
             "y": float(coords_2d[i][1]),
-            "label": metadata[i].get("caption", "")[:40] if i < len(metadata) else "",
-        }
-        for i in range(sample_size)
-    ]
-    return {"points": points, "total": index.ntotal}    
+            "label": short_label,
+            "image_url": meta.get("image_url", ""),
+            "category": meta.get("category", ""),
+        })
+
+    return {"points": points, "total": index.ntotal}
