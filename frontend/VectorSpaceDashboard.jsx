@@ -5,7 +5,7 @@ export default function VectorSpaceDashboard() {
   const [points, setPoints] = useState([]);
   const [totalVectors, setTotalVectors] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [hoveredPoint, setHoveredPoint] = useState(null); // ✅ NEW — for hover tooltip
+  const [hoveredPoint, setHoveredPoint] = useState(null);
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/vectors`)
@@ -18,8 +18,6 @@ export default function VectorSpaceDashboard() {
       .catch(() => setLoading(false));
   }, []);
 
-  // ✅ NEW — normalize raw PCA coords to 5–95% range so points
-  // spread across the canvas instead of clumping in the center
   const normalizePoints = (rawPoints) => {
     if (rawPoints.length === 0) return [];
     const xs = rawPoints.map(p => p.x);
@@ -29,12 +27,25 @@ export default function VectorSpaceDashboard() {
     return rawPoints.map((p, i) => ({
       ...p,
       id: i,
-      px: ((p.x - minX) / (maxX - minX)) * 90 + 5, // 5–95%
-      py: ((p.y - minY) / (maxY - minY)) * 90 + 5, // 5–95%
+      px: ((p.x - minX) / (maxX - minX)) * 90 + 5,
+      py: ((p.y - minY) / (maxY - minY)) * 90 + 5,
     }));
   };
 
   const normalizedPoints = normalizePoints(points);
+
+  // ✅ NEW — figure out which quadrant the point is in so tooltip
+  // doesn't overflow off the edge of the canvas
+  const getTooltipPosition = (px, py) => {
+    const right = px > 60;
+    const bottom = py > 60;
+    return {
+      left: right ? 'auto' : '14px',
+      right: right ? '14px' : 'auto',
+      top: bottom ? 'auto' : '14px',
+      bottom: bottom ? '14px' : 'auto',
+    };
+  };
 
   return (
     <motion.div 
@@ -51,7 +62,6 @@ export default function VectorSpaceDashboard() {
         <p className="text-gold/40 text-xs tracking-[0.3em] uppercase mt-2">
           2D Projection of 512-Dimensional Space
         </p>
-        {/* ✅ NEW — show real index size from API */}
         {!loading && (
           <p className="text-gold/20 text-[10px] tracking-[0.3em] uppercase mt-1 font-mono">
             {totalVectors.toLocaleString()} vectors indexed · {normalizedPoints.length} sampled
@@ -67,7 +77,6 @@ export default function VectorSpaceDashboard() {
         {/* Grid Background */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(248,200,105,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(248,200,105,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
-        {/* ✅ NEW — loading state */}
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-gold/30 text-xs tracking-[0.4em] uppercase font-mono animate-pulse">
@@ -76,34 +85,78 @@ export default function VectorSpaceDashboard() {
           </div>
         )}
 
-        {/* ✅ CHANGED — now uses normalizedPoints instead of dataPoints
-                        uses px/py for position instead of point.x/point.y
-                        hover shows real label from your metadata */}
-        {!loading && normalizedPoints.map((point) => (
-          <div
-            key={point.id}
-            className="absolute w-1.5 h-1.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 cursor-crosshair transition-all duration-200 hover:scale-[4]"
-            style={{
-              left: `${point.px}%`,
-              top: `${point.py}%`,
-              backgroundColor: 'rgba(248,200,105,0.5)',
-              boxShadow: hoveredPoint === point.id
-                ? '0 0 12px rgba(248,200,105,0.9)'
-                : '0 0 4px rgba(248,200,105,0.3)',
-            }}
-            onMouseEnter={() => setHoveredPoint(point.id)}
-            onMouseLeave={() => setHoveredPoint(null)}
-          >
-            {/* ✅ NEW — tooltip shows real label if available */}
-            {hoveredPoint === point.id && point.label && (
-              <div className="absolute left-4 top-0 z-10 whitespace-nowrap text-[10px] text-gold tracking-widest bg-black/80 px-2 py-1 border border-gold/30 pointer-events-none">
-                {point.label}
-              </div>
-            )}
-          </div>
-        ))}
+        {!loading && normalizedPoints.map((point) => {
+          const isHovered = hoveredPoint === point.id;
+          const tooltipPos = getTooltipPosition(point.px, point.py);
 
-        {/* ✅ NEW — empty state if fetch worked but returned no points */}
+          return (
+            <div
+              key={point.id}
+              className="absolute w-1.5 h-1.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 cursor-crosshair transition-all duration-200"
+              style={{
+                left: `${point.px}%`,
+                top: `${point.py}%`,
+                backgroundColor: isHovered
+                  ? 'rgba(248,200,105,1)'
+                  : 'rgba(248,200,105,0.5)',
+                boxShadow: isHovered
+                  ? '0 0 16px rgba(248,200,105,1)'
+                  : '0 0 4px rgba(248,200,105,0.3)',
+                transform: `translate(-50%, -50%) scale(${isHovered ? 2.5 : 1})`,
+                zIndex: isHovered ? 50 : 1,
+              }}
+              onMouseEnter={() => setHoveredPoint(point.id)}
+              onMouseLeave={() => setHoveredPoint(null)}
+            >
+              {/* ✅ NEW — rich tooltip with meme image + vibe text + category */}
+              {isHovered && (
+                <div
+                  className="absolute w-56 bg-black/95 border border-gold/30 flex flex-col gap-0 pointer-events-none"
+                  style={{
+                    ...tooltipPos,
+                    transform: `scale(${1 / 2.5})`,
+                    transformOrigin: tooltipPos.right === 'auto'
+                      ? (tooltipPos.bottom === 'auto' ? 'top left' : 'bottom left')
+                      : (tooltipPos.bottom === 'auto' ? 'top right' : 'bottom right'),
+                  }}
+                >
+                  {/* meme image */}
+                  {point.image_url && (
+                    <img
+                      src={point.image_url}
+                      alt="vibe"
+                      className="w-full h-28 object-cover"
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                  )}
+
+                  <div className="p-2 flex flex-col gap-1.5">
+                    {/* vibe text */}
+                    <p className="text-[10px] text-gold/80 tracking-wide leading-relaxed">
+                      {point.label || "No description available"}
+                    </p>
+
+                    {/* divider */}
+                    <div className="h-px bg-gold/10 w-full" />
+
+                    {/* category + index */}
+                    <div className="flex items-center justify-between">
+                      {point.category && (
+                        <span className="text-[9px] text-gold/30 uppercase tracking-widest font-mono">
+                          [{point.category}]
+                        </span>
+                      )}
+                      <span className="text-[9px] text-gold/20 font-mono">
+                        #{point.id}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
         {!loading && normalizedPoints.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-gold/20 text-xs tracking-[0.4em] uppercase font-mono">
