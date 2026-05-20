@@ -9,6 +9,7 @@ import SearchInterface from './SearchInterface';
 import ResultsOverlay from './ResultsOverlay';
 import VectorSpaceDashboard from './VectorSpaceDashboard.jsx';
 import NotFound from './NotFound.jsx';
+import ScrollToTop from './ScrollToTop.jsx';
 
 function App() {
   const [isWarping, setIsWarping] = useState(false);
@@ -60,6 +61,7 @@ function App() {
 
   return (
     <ReactLenis root>
+      <ScrollToTop />
       <div className="relative w-full min-h-screen bg-space text-gold font-sans overflow-hidden">
 
         <div className="fixed inset-0 z-0 pointer-events-none">

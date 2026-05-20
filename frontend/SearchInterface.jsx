@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 export default function SearchInterface({ setResults, setIsSearching, isSearching }) {
   const [query, setQuery] = useState('');
   const [error, setError] = useState(null);
+  const [topK, setTopK] = useState(3); // ✅ NEW — result count state
 
-  // ✅ NEW — search history state, persisted in localStorage
   const [recentSearches, setRecentSearches] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('vibeSearchHistory') || '[]');
@@ -21,17 +21,16 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
 
   const executeSearch = async (searchQuery) => {
     if (!searchQuery.trim() || isSearching) return;
-
     setIsSearching(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchQuery }),
+        // ✅ NEW — pass topK to backend
+        body: JSON.stringify({ query: searchQuery, top_k: topK }),
       });
       const data = await response.json();
 
-      // ✅ NEW — save to search history on success
       setRecentSearches(prev => {
         const updated = [searchQuery, ...prev.filter(q => q !== searchQuery)].slice(0, 5);
         localStorage.setItem('vibeSearchHistory', JSON.stringify(updated));
@@ -56,7 +55,7 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, y: -50, filter: "blur(10px)" }}
@@ -67,35 +66,77 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
         VIBE / HORIZON
       </h1>
 
-      <form onSubmit={handleSubmit} className="w-full relative flex items-center group">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); setError(null); }}
-          disabled={isSearching}
-          placeholder="Describe a highly specific feeling..."
-          className="w-full bg-transparent border-b border-gold/30 text-gold text-2xl py-4 pr-16 focus:outline-none focus:border-gold placeholder:text-gold/20 font-light transition-colors text-ellipsis overflow-hidden whitespace-nowrap"
-        />
-        <button 
-          type="submit"
-          disabled={isSearching}
-          className="absolute right-0 top-1/2 -translate-y-1/2 text-gold/30 hover:text-gold transition-colors p-4"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-            <polyline points="12 5 19 12 12 19"></polyline>
-          </svg>
-        </button>
+      {/* Search bar + top_k toggle */}
+      <form onSubmit={handleSubmit} className="w-full relative flex flex-col gap-3">
+        <div className="relative flex items-center group">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setError(null); }}
+            disabled={isSearching}
+            placeholder="Describe a highly specific feeling..."
+            className="w-full bg-transparent border-b border-gold/30 text-gold text-2xl py-4 pr-16
+                       focus:outline-none focus:border-gold placeholder:text-gold/20 font-light
+                       transition-colors text-ellipsis overflow-hidden whitespace-nowrap"
+          />
+          <button
+            type="submit"
+            disabled={isSearching}
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-gold/30 hover:text-gold transition-colors p-4"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        {/* ✅ NEW — top_k subtle pills below the input line */}
+        <div className="flex items-center gap-3 self-end">
+          <span className="text-[9px] text-gold/20 uppercase tracking-widest font-mono">Results</span>
+          {[3, 5, 10].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setTopK(n)}
+              className={`text-[9px] px-2.5 py-1 rounded-full border transition-all duration-200
+                         tracking-widest font-mono ${
+                topK === n
+                  ? 'border-gold/50 text-gold/80 bg-gold/5'
+                  : 'border-gold/10 text-gold/20 hover:border-gold/30 hover:text-gold/40'
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </form>
 
+      {/* Error state */}
       {error && (
         <p className="mt-6 text-red-400/70 text-xs tracking-widest text-center uppercase">
           ⚠ {error}
         </p>
       )}
 
-      {/* ✅ NEW — recent searches, shown only when history exists */}
-      {recentSearches.length > 0 && (
+      {/* ✅ NEW — loading skeleton while searching */}
+      {isSearching && (
+        <div className="mt-12 w-full flex flex-col gap-3 items-center">
+          {[...Array(topK > 3 ? 3 : topK)].map((_, i) => (
+            <div
+              key={i}
+              className="w-full max-w-md h-2 rounded-full bg-gold/5 animate-pulse"
+              style={{ animationDelay: `${i * 150}ms`, width: `${90 - i * 15}%` }}
+            />
+          ))}
+          <p className="text-gold/20 text-[9px] tracking-[0.4em] uppercase font-mono mt-4 animate-pulse">
+            Scanning vector space...
+          </p>
+        </div>
+      )}
+
+      {/* Recent searches */}
+      {!isSearching && recentSearches.length > 0 && (
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <span className="w-full text-center text-[9px] text-gold/20 uppercase tracking-widest mb-1">
             Recent
@@ -115,24 +156,25 @@ export default function SearchInterface({ setResults, setIsSearching, isSearchin
         </div>
       )}
 
-      {/* Suggestion Pills */}
-      <div className="mt-12 flex flex-wrap justify-center gap-4">
-        {suggestions.map((suggestion, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => {
-              setQuery(suggestion);
-              executeSearch(suggestion);
-            }}
-            disabled={isSearching}
-            className="px-5 py-2.5 rounded-full border border-gold/20 text-gold/60 text-[10px] uppercase tracking-widest hover:border-gold/60 hover:text-gold transition-all duration-300 relative overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-gold/10 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
-            <span className="relative z-10">{suggestion}</span>
-          </button>
-        ))}
-      </div>
+      {/* Suggestion pills */}
+      {!isSearching && (
+        <div className="mt-12 flex flex-wrap justify-center gap-4">
+          {suggestions.map((suggestion, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => { setQuery(suggestion); executeSearch(suggestion); }}
+              disabled={isSearching}
+              className="px-5 py-2.5 rounded-full border border-gold/20 text-gold/60 text-[10px]
+                         uppercase tracking-widest hover:border-gold/60 hover:text-gold
+                         transition-all duration-300 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gold/10 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
+              <span className="relative z-10">{suggestion}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }
