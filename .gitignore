@@ -27,5 +27,3 @@ frontend/.env.development
 frontend/.env.production
 frontend/.env.local
 backend/.env
-
-todo.txt
