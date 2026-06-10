@@ -85,20 +85,19 @@ export default function AppShell() {
         <div className="border-t border-gold/10 pt-8">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full border border-gold/30 flex items-center justify-center bg-gold/5">
-              <span className="text-gold text-xs font-mono">CH</span>
+              <span className="text-gold text-xs font-mono">EH</span>
             </div>
             <div>
-              <div className="text-gold text-xs uppercase tracking-widest">Chanakya</div>
-              <div className="text-gold/40 text-[10px] font-mono tracking-widest">Sys_Admin</div>
+              <div className="text-gold text-xs uppercase tracking-widest">Event Horizon</div>
+              <div className="text-gold/40 text-[10px] font-mono tracking-widest">v1.0.0</div>
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2 text-[10px] font-mono text-gold/40 uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500/80 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></span>
             Engine Online
           </div>
-          {/* ✅ GitHub link in sidebar footer */}
           <a
-            href="https://github.com/Chanakya-22/random_vibe"
+            href="https://github.com/Chanakya-22/SEMANTIC_SEARCH"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 flex items-center gap-2 text-[10px] font-mono text-gold/20
