@@ -26,8 +26,8 @@ export default function LandingPage({ onInitialize }) {
       .catch(() => setIndexSize(null));
   }, []);
 
-  const headlineA = "Standard search engines index words.".split(" ");
-  const headlineB = "We index chaotic energy.".split(" ");
+  const headlineA = "The meme search engine".split(" ");
+  const headlineB = "that actually gets the joke.".split(" ");
 
   return (
     <motion.div
@@ -72,9 +72,19 @@ export default function LandingPage({ onInitialize }) {
           transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
           className="text-lg md:text-xl text-gold/50 font-light max-w-2xl mx-auto leading-relaxed"
         >
-          A multimodal vector space built to translate abstract human sentiment
-          into visual resonance. Stop typing keywords. Start searching by the exact
-          feeling of watching your code compile successfully on the first try.
+          Built because scrolling endlessly through folders looking for that one meme
+          <br />
+          from months ago felt like a personal defeat.
+          <br />
+          <br />
+          Event Horizon doesn't look for filenames or perfect keywords.
+          <br />
+          It maps images into a universe of meaning, where similar ideas naturally find each other.
+          <br />
+          <br />
+          Describe what you remember.
+          <br />
+          The vector space handles the rest.
         </motion.p>
 
         {/* ✅ NEW — live index stats row */}
@@ -107,6 +117,15 @@ export default function LandingPage({ onInitialize }) {
             </div>
           </div>
         </motion.div>
+
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1, delay: 1.1, ease: "easeOut" }}
+          className="text-sm md:text-base text-gold/40 font-mono max-w-2xl mx-auto leading-relaxed mt-6"
+        >
+          No folders. No tags. No "meme_final_final_REAL.png".
+        </motion.p>
 
         {/* CTA Button */}
         <motion.div
