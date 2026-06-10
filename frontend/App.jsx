@@ -74,7 +74,7 @@ function App() {
 
         <AppShell />
 
-        <div className="relative z-10 md:pl-64 pt-14 md:pt-0 flex flex-col items-center justify-center min-h-screen">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
 
