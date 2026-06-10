@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
 
 export default function AppShell() {
@@ -16,39 +16,58 @@ export default function AppShell() {
 
   return (
     <>
+      {/* Hamburger / Close toggle — mobile only */}
       <button
-        className="md:hidden fixed top-4 left-4 z-[60] p-2 rounded-lg
-                   bg-black/40 border border-gold/20 text-gold/50
+        className="md:hidden fixed top-4 left-4 z-[70] p-2 rounded-lg
+                   bg-black/60 border border-gold/20 text-gold/60
                    hover:text-gold hover:border-gold/40 transition-all"
         onClick={() => setSidebarOpen(!sidebarOpen)}
         aria-label="Toggle menu"
       >
-        <div className="w-5 h-px bg-current mb-1.5"></div>
-        <div className="w-5 h-px bg-current mb-1.5"></div>
-        <div className="w-5 h-px bg-current"></div>
+        {sidebarOpen ? (
+          // X icon when open
+          <>
+            <div className="w-5 h-px bg-current rotate-45 translate-y-px"></div>
+            <div className="w-5 h-px bg-current -rotate-45 -translate-y-px"></div>
+          </>
+        ) : (
+          // Hamburger when closed
+          <>
+            <div className="w-5 h-px bg-current mb-1.5"></div>
+            <div className="w-5 h-px bg-current mb-1.5"></div>
+            <div className="w-5 h-px bg-current"></div>
+          </>
+        )}
       </button>
 
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Full screen overlay — closes sidebar on tap */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[45] bg-black/80 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
+      {/* Sidebar */}
       <motion.div
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         className={`
           fixed top-0 left-0 h-screen w-64 border-r border-gold/10
-          bg-space/60 backdrop-blur-xl z-50 flex flex-col justify-between p-8
+          bg-[#130805] backdrop-blur-xl z-[50] flex flex-col justify-between p-8
           transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0
         `}
       >
         <div>
-          {/* ✅ "Event Horizon" heading is now a home link */}
           <Link
             to="/"
             className="block mb-16 group"
